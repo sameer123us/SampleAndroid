@@ -1,0 +1,24 @@
+name: Trigger Bitrise CI
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  trigger-bitrise:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Bitrise Build
+        run: |
+          curl -X POST "https://api.bitrise.io/v0.1/apps/${{ secrets.BITRISE_APP_SLUG }}/builds" \
+          -H "Authorization: ${{ secrets.BITRISE_API_TOKEN }}" \
+          -H "Content-Type: application/json" \
+          -d '{
+                "hook_info": {"type": "bitrise"},
+                "build_params": {
+                  "branch": "${{ github.ref_name }}",
+                  "workflow_id": "primary",
+                  "commit_message": "Build triggered from GitHub Actions"
+                }
+              }'
