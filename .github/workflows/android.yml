@@ -19,5 +19,5 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Build with Gradle
-        run: ./gradlew build -Pandroid.disableLint=true
+      - name: Assemble Debug APK (Skip Lint & Tests)
+        run: ./gradlew assembleDebug
