@@ -44,24 +44,34 @@ jobs:
     steps:
       - name: Call Bitrise API to Start Build
         run: |
-          curl -X POST "https://api.bitrise.io/v0.1/apps/${{ secrets.BITRISE_APP_SLUG }}/builds" \
-          -H "Authorization: ${{ secrets.BITRISE_API_TOKEN }}" \
-          -H "Content-Type: application/json" \
-          --data '{
-            "hook_info": { "type": "bitrise" },
-            "build_params": {
-              "branch": "main",
-              "workflow_id": "deploy"
-            },
-            "triggered_by": "GitHub Actions"
-          }'
+          BITRISE_BUILD_URL="https://api.bitrise.io/v0.1/apps/${{ secrets.BITRISE_APP_SLUG }}/builds"
+          curl -X POST "$BITRISE_BUILD_URL" \
+            -H "Authorization: Bearer ${{ secrets.BITRISE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{
+              "hook_info": { "type": "bitrise" },
+              "build_params": {
+                "branch": "main",
+                "workflow_id": "deploy"
+              },
+              "triggered_by": "GitHub Actions"
+            }'
 
       - name: Wait for Bitrise Build to Complete
         run: |
           BITRISE_BUILD_URL="https://api.bitrise.io/v0.1/apps/${{ secrets.BITRISE_APP_SLUG }}/builds"
           while true; do
-            STATUS=$(curl -s -H "Authorization: ${{ secrets.BITRISE_API_TOKEN }}" "$BITRISE_BUILD_URL" | jq -r '.data[].status_text')
+            RESPONSE=$(curl -s -H "Authorization: Bearer ${{ secrets.BITRISE_API_TOKEN }}" "$BITRISE_BUILD_URL")
+            STATUS=$(echo "$RESPONSE" | jq -r '.data[0].status_text')
+
+            if [[ -z "$STATUS" || "$STATUS" == "null" ]]; then
+              echo "Error: Invalid response from Bitrise API"
+              echo "Response: $RESPONSE"
+              exit 1
+            fi
+
             echo "Current Bitrise Build Status: $STATUS"
+
             if [[ "$STATUS" == "success" ]]; then
               echo "Bitrise Build Succeeded!"
               exit 0
@@ -69,6 +79,7 @@ jobs:
               echo "Bitrise Build Failed!"
               exit 1
             fi
+
             sleep 30
           done
 
@@ -81,14 +92,15 @@ jobs:
     steps:
       - name: Call Bitrise API for Release
         run: |
-          curl -X POST "https://api.bitrise.io/v0.1/apps/${{ secrets.BITRISE_APP_SLUG }}/builds" \
-          -H "Authorization: ${{ secrets.BITRISE_API_TOKEN }}" \
-          -H "Content-Type: application/json" \
-          --data '{
-            "hook_info": { "type": "bitrise" },
-            "build_params": {
-              "branch": "main",
-              "workflow_id": "release"
-            },
-            "triggered_by": "GitHub Actions"
-          }'
+          BITRISE_BUILD_URL="https://api.bitrise.io/v0.1/apps/${{ secrets.BITRISE_APP_SLUG }}/builds"
+          curl -X POST "$BITRISE_BUILD_URL" \
+            -H "Authorization: Bearer ${{ secrets.BITRISE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{
+              "hook_info": { "type": "bitrise" },
+              "build_params": {
+                "branch": "main",
+                "workflow_id": "release"
+              },
+              "triggered_by": "GitHub Actions"
+            }'
