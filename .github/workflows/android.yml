@@ -59,7 +59,7 @@ jobs:
               "hook_info": { "type": "bitrise" },
               "build_params": {
                 "branch": "main",
-                "workflow_id": "deploy"
+                "workflow_id": "build_apk"
               },
               "triggered_by": "GitHub Actions"
             }')
