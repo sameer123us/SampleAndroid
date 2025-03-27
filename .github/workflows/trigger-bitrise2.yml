@@ -45,7 +45,7 @@ jobs:
       - name: Call Bitrise API to Start Build
         run: |
           curl -X POST "https://api.bitrise.io/v0.1/apps/${{ secrets.BITRISE_APP_SLUG }}/builds" \
-          -H "Authorization: ${{ secrets.BITRISE_PERSONAL_ACCESS_TOKEN }}" \
+          -H "Authorization: ${{ secrets.BITRISE_API_TOKEN }}" \
           -H "Content-Type: application/json" \
           --data '{
             "hook_info": { "type": "bitrise" },
