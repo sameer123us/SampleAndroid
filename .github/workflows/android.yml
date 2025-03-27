@@ -141,7 +141,7 @@ jobs:
               "hook_info": { "type": "bitrise" },
               "build_params": {
                 "branch": "main",
-                "workflow_id": "release"
+                "workflow_id": "deploy"
               },
               "triggered_by": "GitHub Actions"
             }'
