@@ -52,7 +52,8 @@ jobs:
       - name: Trigger Bitrise Build
         run: |
           BITRISE_BUILD_URL="https://api.bitrise.io/v0.1/apps/${{ secrets.BITRISE_APP_SLUG }}/builds"
-          RESPONSE=$(curl -X POST "$BITRISE_BUILD_URL" \
+      
+          RESPONSE=$(curl -s -X POST "$BITRISE_BUILD_URL" \
             -H "Authorization: ${{ secrets.BITRISE_API_TOKEN }}" \
             -H "Content-Type: application/json" \
             --data '{
@@ -63,17 +64,27 @@ jobs:
               },
               "triggered_by": "GitHub Actions"
             }')
-    
-          echo "API Response: $RESPONSE"
-    
-          BUILD_ID=$(echo "$RESPONSE" | jq -r '.results[0].build_slug')
-    
+      
+          # Debug: Print API response
+          echo "Raw API Response: $RESPONSE"
+      
+          # Validate JSON format
+          if ! echo "$RESPONSE" | jq empty; then
+            echo "Error: API Response is not valid JSON"
+            exit 1
+          fi
+      
+          BUILD_ID=$(echo "$RESPONSE" | jq -r '.data.build_slug')
+      
           if [[ -z "$BUILD_ID" || "$BUILD_ID" == "null" ]]; then
             echo "Error: Failed to trigger build. API Response: $RESPONSE"
             exit 1
           fi
-    
-          echo "Triggered Build ID: $BUILD_ID"
+      
+          echo "Triggered Bitrise Build ID: $BUILD_ID"
+      
+          # Output build ID for next steps
+          echo "BUILD_ID=$BUILD_ID" >> $GITHUB_ENV
 
 
 
