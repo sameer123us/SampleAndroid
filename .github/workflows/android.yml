@@ -126,7 +126,7 @@ jobs:
 
   release:
     name: Deploy Release (Tag Push)
-    if: startsWith(github.ref, 'refs/tags/')
+    #if: startsWith(github.ref, 'refs/tags/')
     needs: trigger-bitrise
     runs-on: ubuntu-latest
 
