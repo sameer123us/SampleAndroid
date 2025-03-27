@@ -98,7 +98,7 @@ jobs:
                 -H "Authorization: ${{ secrets.BITRISE_API_TOKEN }}")
           
               # Debug: Print API response
-              echo "Raw Build Status API Response: $RESPONSE"
+              echo "Raw Build Status - API Response: $RESPONSE"
           
               # Check if JSON is valid
               if ! echo "$RESPONSE" | jq empty; then
