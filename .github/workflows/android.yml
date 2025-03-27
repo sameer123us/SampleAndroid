@@ -77,7 +77,7 @@ jobs:
           BUILD_ID=$(echo "$RESPONSE" | jq -r '.results[0].build_slug')
       
           if [[ -z "$BUILD_ID" || "$BUILD_ID" == "null" ]]; then
-            echo "Error: Failed to trigger build. API Response: $RESPONSE"
+            echo "Error: Failed to trigger build... API Response: $RESPONSE"
             exit 1
           fi
       
