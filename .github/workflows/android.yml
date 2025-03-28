@@ -181,18 +181,52 @@ jobs:
 
       - name: Download APK from Bitrise
         run: |
-          BITRISE_ARTIFACT_URL="https://api.bitrise.io/v0.1/apps/${{ secrets.BITRISE_APP_SLUG }}/builds/${{ env.BUILD_ID }}/artifacts/${{ env.ARTIFACT_SLUG }}"
-          
-          DOWNLOAD_URL=$(curl -s -X GET "$BITRISE_ARTIFACT_URL" \
-            -H "Authorization: ${{ secrets.BITRISE_API_TOKEN }}" | jq -r '.data.expiring_download_url')
+          BITRISE_BUILD_STATUS_URL="https://api.bitrise.io/v0.1/apps/${{ secrets.BITRISE_APP_SLUG }}/builds/$BUILD_ID/artifacts"
       
-          if [[ -z "$DOWNLOAD_URL" || "$DOWNLOAD_URL" == "null" ]]; then
-            echo "Error: Failed to retrieve APK download URL"
+          echo "Fetching artifacts from Bitrise..."
+      
+          RESPONSE=$(curl -s -L -X GET "$BITRISE_BUILD_STATUS_URL" \
+            -H "Authorization: ${{ secrets.BITRISE_API_TOKEN }}" \
+            -H "Content-Type: application/json")
+      
+          echo "Raw API Response: $RESPONSE"
+      
+          # Check if JSON response is valid
+          if ! echo "$RESPONSE" | jq empty; then
+            echo "Error: API Response is not valid JSON"
             exit 1
           fi
       
-          curl -o app-release.apk "$DOWNLOAD_URL"
-          echo "APK downloaded: app-release.apk"
+          # Extract artifact slug (Assumes first artifact is APK)
+          ARTIFACT_SLUG=$(echo "$RESPONSE" | jq -r '.data[0].slug')
+      
+          if [[ -z "$ARTIFACT_SLUG" || "$ARTIFACT_SLUG" == "null" ]]; then
+            echo "Error: No artifact found!"
+            exit 1
+          fi
+      
+          echo "Artifact Slug: $ARTIFACT_SLUG"
+      
+          # Construct APK download URL
+          APK_DOWNLOAD_URL="https://api.bitrise.io/v0.1/apps/${{ secrets.BITRISE_APP_SLUG }}/builds/$BUILD_ID/artifacts/$ARTIFACT_SLUG"
+      
+          # Get the actual APK download link
+          APK_RESPONSE=$(curl -s -L -X GET "$APK_DOWNLOAD_URL" \
+            -H "Authorization: ${{ secrets.BITRISE_API_TOKEN }}" \
+            -H "Content-Type: application/json")
+      
+          APK_URL=$(echo "$APK_RESPONSE" | jq -r '.data.public_download_url')
+      
+          if [[ -z "$APK_URL" || "$APK_URL" == "null" ]]; then
+            echo "Error: Failed to get APK download URL!"
+            exit 1
+          fi
+      
+          echo "Downloading APK from $APK_URL..."
+          curl -L -o app.apk "$APK_URL"
+      
+          echo "APK downloaded successfully!"
+
 
       - name: Upload APK to Firebase App Distribution
         run: |
