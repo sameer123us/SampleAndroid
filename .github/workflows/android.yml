@@ -177,37 +177,26 @@ jobs:
           echo "Triggered Bitrise Build ID: $BUILD_ID"
           echo "BUILD_ID=$BUILD_ID" >> $GITHUB_ENV
 
-
-
-      - name: Get Artifact Download URL
+      - name: Download APK Info
         run: |
-          ARTIFACTS_URL="https://api.bitrise.io/v0.1/apps/${{ secrets.BITRISE_APP_SLUG }}/builds/${{ env.BUILD_ID }}/artifacts"
-          
-          RESPONSE=$(curl -s -X GET "$ARTIFACTS_URL" \
-            -H "Authorization: ${{ secrets.BITRISE_API_TOKEN }}" \
-            -H "Content-Type: application/json")
-      
-          echo "Raw API Response: $RESPONSE"
-      
-          # Extract artifact URL
-          ARTIFACT_URL=$(echo "$RESPONSE" | jq -r '.data[] | select(.title | contains("app-release-unsigned.apk")) | .expiring_download_url')
-      
-          if [[ -z "$ARTIFACT_URL" || "$ARTIFACT_URL" == "null" ]]; then
-            echo "Error: No matching APK artifact found!"
-            exit 1
-          fi
-      
-          echo "Artifact URL: $ARTIFACT_URL"
-      
-          # Download APK
-          curl -o app-release.apk "$ARTIFACT_URL"
-
-
-      - name: Upload APK to Firebase App Distribution
+          curl -s -X GET "https://api.bitrise.io/v0.1/apps/f4fdd47e-5869-4405-9921-42565a3012e6/builds/9a4fe954-36c1-41cf-85f1-4b37e9080ae1/artifacts/bcb800d40c364f7d" \
+            -H "Authorization: 8uWxYQq3CSWRycLeGUNlIrDhmoNK8KN1f74Xt0rLUK4ZB6VnXE2eXfVvGZPSZRH1h1-o8Lzw8WciczVkUWo7iA" \
+            -H "Content-Type: application/json" > apk_info.json
+  
+      - name: Extract Download URL & Download APK
         run: |
-          firebase appdistribution:distribute "app-release.apk" \
+          DOWNLOAD_URL=$(grep -o '"expiring_download_url":"[^"]*' apk_info.json | sed -E 's/.*"expiring_download_url":"([^"]*)/\1/')
+          echo "APK Download URL: $DOWNLOAD_URL"
+          curl -o app-release-unsigned.apk "$DOWNLOAD_URL"
+  
+  
+      - name: Deploy APK to Firebase App Distribution
+        run: |
+          firebase appdistribution:distribute app-release-unsigned.apk \
             --app ${{ secrets.FIREBASE_APP_ID }} \
             --groups testers \
-            --release-notes "New release from CI/CD"
+            --token "${{ secrets.FIREBASE_TOKEN }}" \
+            --release-notes "New release from GitHub Actions"
+
 
 
