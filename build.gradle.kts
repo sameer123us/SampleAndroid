@@ -31,6 +31,7 @@ plugins {
     alias(libs.plugins.gradle.versions)
     alias(libs.plugins.version.catalog.update)
     alias(libs.plugins.compose.compiler)
+    id("com.google.gms.google-services") version "4.4.2" apply false
 }
 
 apply("${project.rootDir}/buildscripts/toml-updater-config.gradle")
