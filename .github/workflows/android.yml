@@ -126,41 +126,31 @@ jobs:
 
 
   release:
-    name: Deploy Release (Tag Push)
-    #if: startsWith(github.ref, 'refs/tags/')
+    name: Deploy Release (Firebase App Distribution)
     needs: trigger-bitrise
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      - name: Debug Bitrise API Response
-        run: |
-          BITRISE_BUILD_URL="https://api.bitrise.io/v0.1/apps/${{ secrets.BITRISE_APP_SLUG }}/builds"
-          RESPONSE=$(curl -s -X POST "$BITRISE_BUILD_URL" \
-            -H "Authorization: ${{ secrets.BITRISE_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            --data '{
-              "hook_info": { "type": "bitrise" },
-              "build_params": {
-                "branch": "main",
-                "workflow_id": "deploy"
-              },
-              "triggered_by": "GitHub Actions"
-            }')
-    
-          echo "Raw API Response: $RESPONSE"
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
 
-      - name: Call Bitrise API for Release
+      - name: Set Up Firebase Authentication
         run: |
-          BITRISE_BUILD_URL="https://api.bitrise.io/v0.1/apps/${{ secrets.BITRISE_APP_SLUG }}/builds"
-          curl -X POST "$BITRISE_BUILD_URL" \
-            -H "Authorization: ${{ secrets.BITRISE_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            --data '{
-              "hook_info": { "type": "bitrise" },
-              "build_params": {
-                "branch": "main",
-                "workflow_id": "deploy"
-              },
-              "triggered_by": "GitHub Actions"
-            }'
+          echo '${{ secrets.BITRISE_FIREBASE_SERVICE_ACCOUNT }}' > firebase.json
+          export GOOGLE_APPLICATION_CREDENTIALS=firebase.json
+
+      - name: Deploy to Firebase App Distribution
+        run: |
+          APK_PATH=$(find . -name "*.apk" | head -n 1)
+          if [[ -z "$APK_PATH" ]]; then
+            echo "Error: No APK file found!"
+            exit 1
+          fi
+
+          firebase appdistribution:distribute "$APK_PATH" \
+            --app ${{ secrets.FIREBASE_APP_ID }} \
+            --groups testers \
+            --release-notes "New release from CI/CD"
