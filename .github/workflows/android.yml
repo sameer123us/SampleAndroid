@@ -70,7 +70,7 @@ jobs:
       
           # Validate JSON format
           if ! echo "$RESPONSE" | jq empty; then
-            echo "Error: API Response is not valid JSON"
+            echo "Error: API Response not a valid JSON"
             exit 1
           fi
       
