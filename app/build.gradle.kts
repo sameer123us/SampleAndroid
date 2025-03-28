@@ -20,6 +20,8 @@ plugins {
   alias(libs.plugins.ksp)
   alias(libs.plugins.hilt)
   alias(libs.plugins.compose.compiler)
+  id("com.android.application")
+  id("com.google.gms.google-services")
 }
 
 android {
@@ -159,6 +161,7 @@ dependencies {
   androidTestImplementation(libs.hilt.android.testing)
   androidTestImplementation(libs.accessibility.test.framework)
   androidTestImplementation(libs.kotlinx.coroutines.test)
+  implementation(platform("com.google.firebase:firebase-bom:33.11.0"))
   testImplementation(libs.junit)
 }
 
