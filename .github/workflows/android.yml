@@ -160,20 +160,23 @@ jobs:
       
           echo "Raw API Response: $RESPONSE"
       
+          # Validate JSON format
           if ! echo "$RESPONSE" | jq empty; then
             echo "Error: API Response is not valid JSON"
             exit 1
           fi
       
-          BUILD_ID=$(echo "$RESPONSE" | jq -r '.data.build_slug')
+          # Correctly extract build_slug from the results array
+          BUILD_ID=$(echo "$RESPONSE" | jq -r '.results[0].build_slug')
       
           if [[ -z "$BUILD_ID" || "$BUILD_ID" == "null" ]]; then
-            echo "Error: Failed to trigger build... API Response: $RESPONSE"
+            echo "Error: Failed to retrieve build ID. API Response: $RESPONSE"
             exit 1
           fi
       
           echo "Triggered Bitrise Build ID: $BUILD_ID"
           echo "BUILD_ID=$BUILD_ID" >> $GITHUB_ENV
+
 
 
       - name: Download APK from Bitrise
