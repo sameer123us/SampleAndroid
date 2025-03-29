@@ -43,7 +43,7 @@ jobs:
     steps:
       - name: Debug API Token & App Slug
         run: |
-          echo "Checking API ...Token Length: ${#BITRISE_API_TOKEN}"
+          echo "Checking API ....Token Length: ${#BITRISE_API_TOKEN}"
           echo "Checking App Slug.... Length: ${#BITRISE_APP_SLUG}"
         env:
           BITRISE_API_TOKEN: ${{ secrets.BITRISE_API_TOKEN }}
