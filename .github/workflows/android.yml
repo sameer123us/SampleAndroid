@@ -35,7 +35,7 @@ jobs:
      # - name: Run Unit Tests
      #   run: ./gradlew test
 
-  trigger-bitrise:
+  trigger-bitrise-build:
     name: Trigger Bitrise Build
     needs: validate
     runs-on: ubuntu-latest
@@ -65,12 +65,12 @@ jobs:
               "triggered_by": "GitHub Actions"
             }')
       
-          # Debug: Print API response
+          
           echo "Raw API Response: $RESPONSE"
       
-          # Validate JSON format
+          
           if ! echo "$RESPONSE" | jq empty; then
-            echo "Error: API Response not a valid JSON"
+            echo "Error: API Response is not a valid JSON"
             exit 1
           fi
       
@@ -97,16 +97,16 @@ jobs:
               RESPONSE=$(curl -s -X GET "$BITRISE_BUILD_STATUS_URL" \
                 -H "Authorization: ${{ secrets.BITRISE_API_TOKEN }}")
           
-              # Debug: Print API response
+           
               echo "Raw Build Status - API Response: $RESPONSE"
           
-              # Check if JSON is valid
+           
               if ! echo "$RESPONSE" | jq empty; then
                 echo "Error: Invalid JSON response from Bitrise API"
                 exit 1
               fi
           
-              # Extract build status
+           
               BUILD_STATUS=$(echo "$RESPONSE" | jq -r '.data.status')
           
               if [[ "$BUILD_STATUS" == "1" ]]; then
@@ -127,7 +127,7 @@ jobs:
 
   release:
     name: Deploy Release (Firebase App Distribution)
-    needs: trigger-bitrise
+    needs: trigger-bitrise-build
     runs-on: ubuntu-latest
 
     steps:
